@@ -16,10 +16,8 @@ const unsigned int pcPort = 5005;
 constexpr int RXD2 = 44;
 constexpr int TXD2 = 43;
 
-
 String teensyMsg = "";
 char incomingPacket[256];
-
 
 void connectToWiFi() {
   Serial.print("Connecting to WiFi");
@@ -37,15 +35,17 @@ void connectToWiFi() {
   Serial.println(WiFi.localIP());
 }
 
+
 void sendUDPMessage(const String& msg) {
   udp.beginPacket(pcIP, pcPort);
   udp.print(msg);
   udp.endPacket();
 }
 
+
 void start_wifi_serial() {
   Serial.begin(115200);
-  delay(5000);  
+  delay(1000);  
   Serial.println("ESP32 starting...");                       // USB debug
   Serial1.begin(115200, SERIAL_8N1, RXD2, TXD2); // UART to Teensy
   
@@ -54,14 +54,16 @@ void start_wifi_serial() {
 
   udp.begin(localPort);
   Serial.printf("UDP listening on port %u\n", localPort);
+  Serial.println("ESP32 ready for MOTOR CONTROL..");
 
-  // announce to PC first
-  sendUDPMessage("ESP32 UDP bridge ready");
-  Serial.println("Sent startup packet to PC");
+  // announce to PC first, thats for print comms
+  //sendUDPMessage("ESP32 UDP bridge ready");
+  //Serial.println("Sent startup packet to PC");
 
   // optional: announce to Teensy
-  Serial1.println("ESP32 ready");
+  //Serial1.println("ESP32 ready");
 }
+
 
 void wifi_recursion () {
   // =========================
@@ -77,15 +79,6 @@ void wifi_recursion () {
     Serial.print("From PC: ");
     Serial.println(incomingPacket);
     Serial1.println(incomingPacket);   // forward to Teensy
-
-    delay(50);
-    if (Serial1.available()) {
-      Serial.println("Serial1 available");
-    }
-    else {
-      Serial.println("Serial1 NOT available");
-    }
-    delay(50);
 
   }
 
@@ -106,4 +99,41 @@ void wifi_recursion () {
       teensyMsg += c;
     }
   }
+}
+
+
+void motor_wifi_recursion () {
+  // =========================
+  // PC -> ESP32 -> Teensy
+  // =========================
+  int packetSize = udp.parsePacket();
+  if (packetSize) {
+    int len = udp.read(incomingPacket, sizeof(incomingPacket) - 1);
+    if (len > 0) {
+      incomingPacket[len] = '\0';
+    }
+
+    int pwm_value = atoi(incomingPacket); // convert string to int
+    pwm_value = constrain(pwm_value, 1000, 2000); // clamp just in case
+
+    Serial.printf("From PC: %d\n", pwm_value);
+    Serial1.println(pwm_value);   // forward to Teensy
+
+  }
+
+  // =========================
+  // Teensy -> ESP32 -> PC
+  // =========================
+  
+  /* while (Serial1.available()) {
+    char c = Serial1.read();
+
+    if (c == '\n') {
+      Serial.printf("From Teensy: %s\n", teensyMsg.c_str());
+      sendUDPMessage(teensyMsg);   // forward to PC
+      teensyMsg = "";
+    } else if (c != '\r') {
+      teensyMsg += c;
+    }
+  } */
 }
