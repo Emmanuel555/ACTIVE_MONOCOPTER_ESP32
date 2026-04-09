@@ -7,6 +7,7 @@ const char* password = "748748748";
 
 WiFiUDP udp;
 
+const unsigned int OptiPort = 22222;
 const unsigned int localPort = 5005;
 IPAddress pcIP(192, 168, 1, 146);   // replace with your PC IP
 const unsigned int pcPort = 5005;
@@ -45,15 +46,15 @@ void sendUDPMessage(const String& msg) {
 
 void start_wifi_serial() {
   Serial.begin(115200);
-  delay(1000);  
+  delay(200);  
   Serial.println("ESP32 starting...");                       // USB debug
   Serial1.begin(115200, SERIAL_8N1, RXD2, TXD2); // UART to Teensy
   
   //delay(1000);
   connectToWiFi();
 
-  udp.begin(localPort);
-  Serial.printf("UDP listening on port %u\n", localPort);
+  udp.begin(pcPort);
+  Serial.printf("UDP listening on port %u\n", pcPort);
   Serial.println("ESP32 ready for MOTOR CONTROL..");
 
   // announce to PC first, thats for print comms
