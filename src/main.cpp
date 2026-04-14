@@ -23,6 +23,9 @@ void loop(){
 
     Serial.printf("pos=(%.3f,%.3f,%.3f) quat=(%.3f,%.3f,%.3f,%.3f) Update rate = (%.3f)\n",
         x, y, z, qx, qy, qz, qw, optitrack.sample_rate);
+
+    optitrack.send_to_teensy(x, y, z, qx, qy, qz, qw);
+    motor_wifi_recursion();
 }
 
     

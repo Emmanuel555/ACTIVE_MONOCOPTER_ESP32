@@ -6,3 +6,4 @@ void start_wifi_serial();
 void wifi_recursion();
 void sendUDPMessage(const String& msg);
 void motor_wifi_recursion();
+void dshot_motor_wifi_recursion();

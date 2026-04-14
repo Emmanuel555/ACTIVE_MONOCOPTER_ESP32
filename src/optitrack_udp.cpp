@@ -54,3 +54,15 @@ bool OptitrackUDP::get_data() {
     sock.read((uint8_t*)&data, pkt_size);
     return true;
 }
+
+// ---------------------------------------------------------------
+// send_to_teensy() — sends scaled floats over UART (Serial1)
+// Format: "x,y,z,qx,qy,qz,qw\n"  — parse with strtok on Teensy
+// ---------------------------------------------------------------
+void OptitrackUDP::send_to_teensy(float x, float y, float z,
+                                   float qx, float qy, float qz, float qw) {
+    char buf[64];
+    snprintf(buf, sizeof(buf), "%.4f,%.4f,%.4f,%.4f,%.4f,%.4f,%.4f\n",
+             x, y, z, qx, qy, qz, qw);
+    Serial1.print(buf);
+}

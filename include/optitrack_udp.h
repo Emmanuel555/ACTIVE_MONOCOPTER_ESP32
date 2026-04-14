@@ -21,6 +21,8 @@ struct OptitrackUDP {
 
     void          begin(int bodies = 1);
     bool          get_data();        // blocking receive — returns true on success
+    void          send_to_teensy(float x, float y, float z,
+                                 float qx, float qy, float qz, float qw);
 };
 
 extern OptitrackUDP optitrack;

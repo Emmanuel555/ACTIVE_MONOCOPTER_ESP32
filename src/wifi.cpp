@@ -138,3 +138,47 @@ void motor_wifi_recursion () {
     }
   } */
 }
+
+void dshot_motor_wifi_recursion () {
+  // =========================
+  // PC -> ESP32 -> Teensy
+  // =========================
+  int packetSize = udp.parsePacket();
+  if (packetSize) {
+    int len = udp.read(incomingPacket, sizeof(incomingPacket) - 1);
+    if (len > 0) {
+      incomingPacket[len] = '\0';
+    }
+
+    // validate comma exists before forwarding
+    String msg = String(incomingPacket);
+    int commaIndex = msg.indexOf(',');
+    if (commaIndex != -1) {
+        int direction = msg.substring(0, commaIndex).toInt();
+        float value = msg.substring(commaIndex + 1).toFloat();
+
+        //Serial.printf("From PC - Direction: %d, Value: %.2f\n", direction, value);
+        Serial.printf("Forwarding to Teensy: %s\n", msg);
+        Serial1.println(msg);   // forward raw string to Teensy
+    } else {
+        Serial.println("Invalid packet format, expected direction,value");
+    }
+
+  }
+
+  // =========================
+  // Teensy -> ESP32 -> PC
+  // =========================
+  
+  /* while (Serial1.available()) {
+    char c = Serial1.read();
+
+    if (c == '\n') {
+      Serial.printf("From Teensy: %s\n", teensyMsg.c_str());
+      sendUDPMessage(teensyMsg);   // forward to PC
+      teensyMsg = "";
+    } else if (c != '\r') {
+      teensyMsg += c;
+    }
+  } */
+}
