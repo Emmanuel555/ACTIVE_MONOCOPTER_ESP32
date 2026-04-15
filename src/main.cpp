@@ -5,14 +5,14 @@
 
 void setup(){
     start_wifi_serial();
-    optitrack.begin();
+    //optitrack.begin();
     //Serial.begin(115200);
     //delay(3000);
     //Serial.println("BOOT OK");
 }
 
 void loop(){
-    optitrack.get_data();
+    /* optitrack.get_data();
     float x  = optitrack.data.x  * 0.0005f;
     float y  = optitrack.data.y  * 0.0005f;
     float z  = optitrack.data.z  * 0.0005f;
@@ -24,8 +24,9 @@ void loop(){
     Serial.printf("pos=(%.3f,%.3f,%.3f) quat=(%.3f,%.3f,%.3f,%.3f) Update rate = (%.3f)\n",
         x, y, z, qx, qy, qz, qw, optitrack.sample_rate);
 
-    optitrack.send_to_teensy(x, y, z, qx, qy, qz, qw);
+    optitrack.send_to_teensy(x, y, z, qx, qy, qz, qw); */
     motor_wifi_recursion();
+
 }
 
     
