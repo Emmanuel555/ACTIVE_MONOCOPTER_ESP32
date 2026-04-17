@@ -7,3 +7,6 @@ void wifi_recursion();
 void sendUDPMessage(const String& msg);
 void motor_wifi_recursion();
 void dshot_motor_wifi_recursion();
+void onReceive(const uint8_t *mac, const uint8_t *data, int len);
+void ESPNOW_init();
+void start_ESPNOW_serial();

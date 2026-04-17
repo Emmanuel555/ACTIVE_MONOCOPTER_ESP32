@@ -4,7 +4,9 @@
 #include "optitrack_udp.h"
 
 void setup(){
-    start_wifi_serial();
+    start_ESPNOW_serial();
+    
+    //start_wifi_serial();
     //optitrack.begin();
     //Serial.begin(115200);
     //delay(3000);
@@ -25,7 +27,7 @@ void loop(){
         x, y, z, qx, qy, qz, qw, optitrack.sample_rate);
 
     optitrack.send_to_teensy(x, y, z, qx, qy, qz, qw); */
-    motor_wifi_recursion();
+    //motor_wifi_recursion();
 
 }
 

@@ -1,6 +1,7 @@
 #include <WiFi.h>
 #include <WiFiUdp.h>
 #include "wifi_rec.h"
+#include <esp_now.h>
 
 const char* ssid = "Free";
 const char* password = "748748748";
@@ -20,9 +21,16 @@ constexpr int TXD2 = 43;
 String teensyMsg = "";
 char incomingPacket[256];
 
+
+IPAddress local_IP(192, 168, 1, 108);  // pick a free IP on your network
+IPAddress gateway(192, 168, 1, 1);      // your router
+IPAddress subnet(255, 255, 255, 0);   // subnet mask
+
+
 void connectToWiFi() {
   Serial.print("Connecting to WiFi");
   WiFi.mode(WIFI_STA);
+  WiFi.config(local_IP, gateway, subnet);
   WiFi.begin(ssid, password);
 
   while (WiFi.status() != WL_CONNECTED) {
@@ -34,6 +42,17 @@ void connectToWiFi() {
   Serial.println("WiFi connected");
   Serial.print("ESP32 IP: ");
   Serial.println(WiFi.localIP());
+}
+
+
+void ESPNOW_init() {
+  Serial.print("Connecting via ESPNOW");
+  WiFi.mode(WIFI_STA);
+  // print MAC address so you can copy it to desk ESP32
+  Serial.printf("Receiver MAC: %s\n", WiFi.macAddress().c_str());
+  
+  esp_now_init();
+  //esp_now_register_recv_cb(onReceive);
 }
 
 
@@ -63,6 +82,22 @@ void start_wifi_serial() {
 
   // optional: announce to Teensy
   //Serial1.println("ESP32 ready");
+}
+
+
+void start_ESPNOW_serial() {
+  Serial.begin(115200);
+  delay(200);  
+  Serial.println("ESP32 starting...");                       // USB debug
+  Serial1.begin(115200, SERIAL_8N1, RXD2, TXD2); // UART to Teensy
+  
+  //delay(1000);
+  ESPNOW_init();
+
+  Serial.println("ESP32 ready for ESPNOW..");
+
+  // optional: announce to Teensy
+  //Serial1.println("ESP NOW ready");
 }
 
 
@@ -139,6 +174,7 @@ void motor_wifi_recursion () {
   } */
 }
 
+
 void dshot_motor_wifi_recursion () {
   // =========================
   // PC -> ESP32 -> Teensy
@@ -181,4 +217,24 @@ void dshot_motor_wifi_recursion () {
       teensyMsg += c;
     }
   } */
+}
+
+
+void onReceive(const uint8_t *mac, const uint8_t *data, int len) {
+    String msg = "";
+    for (int i = 0; i < len; i++) {
+        msg += (char)data[i];
+    }
+    msg.trim();
+
+    int commaIndex = msg.indexOf(',');
+    if (commaIndex != -1) {
+        String dirStr = msg.substring(0, commaIndex);
+        String valStr = msg.substring(commaIndex + 1);
+        dirStr.trim();
+        valStr.trim();
+
+        Serial.printf("From desk ESP32: %s\n", msg.c_str());
+        Serial1.println(msg); // forward to Teensy
+    }
 }
