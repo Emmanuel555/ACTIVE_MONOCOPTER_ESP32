@@ -3,6 +3,67 @@
 #include "wifi_rec.h"
 #include <esp_now.h>
 
+
+// PCB ESP32 MAC address - get this from PCB ESP32's Serial monitor
+uint8_t pcbMacAddress[] = {0xD8, 0x3B, 0xDA, 0x45, 0x88, 0x18};
+
+esp_now_peer_info_t peerInfo;
+
+void onSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
+Serial.printf("Send status: %s\n", status == ESP_NOW_SEND_SUCCESS ? "SENT" : "FAILED");
+}
+
+
+void send_ESPNOW_init() {
+    Serial.begin(115200);
+    setCpuFrequencyMhz(80);          // reduce CPU speed
+    //WiFi.setTxPower(WIFI_POWER_2dBm); // reduce TX power
+    WiFi.mode(WIFI_STA);
+    esp_now_init();
+    esp_now_register_send_cb(onSent);
+
+    memcpy(peerInfo.peer_addr, pcbMacAddress, 6);
+    peerInfo.channel = 0;
+    peerInfo.encrypt = false;
+    if (esp_now_add_peer(&peerInfo) != ESP_OK) {
+        Serial.println("Failed to add peer");
+        return;
+    }
+    Serial.println("Peer added successfully");
+}
+
+void ESPNOW_loop() {
+    if (Serial.available()) {
+        String msg = Serial.readStringUntil('\n');
+        msg.trim();
+        esp_now_send(pcbMacAddress, (uint8_t*)msg.c_str(), msg.length());
+    }
+    // send dummy message to test binding
+    String testMsg = "hello";
+    esp_now_send(pcbMacAddress, (uint8_t*)testMsg.c_str(), testMsg.length());
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 const char* ssid = "Free";
 const char* password = "748748748";
 
