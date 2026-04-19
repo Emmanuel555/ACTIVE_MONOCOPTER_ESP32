@@ -10,7 +10,7 @@ uint8_t pcbMacAddress[] = {0xD8, 0x3B, 0xDA, 0x45, 0x88, 0x18};
 esp_now_peer_info_t peerInfo;
 
 void onSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
-Serial.printf("Send status: %s\n", status == ESP_NOW_SEND_SUCCESS ? "SENT" : "FAILED");
+Serial.printf("Send status: %s\n", status == ESP_NOW_SEND_SUCCESS ? "SENT (RX Online)" : "FAILED (RX Offline)");
 }
 
 
@@ -32,15 +32,20 @@ void send_ESPNOW_init() {
     Serial.println("Peer added successfully");
 }
 
+
 void ESPNOW_loop() {
     if (Serial.available()) {
         String msg = Serial.readStringUntil('\n');
+        Serial.println("Reading from PC Serial: " + msg);
         msg.trim();
         esp_now_send(pcbMacAddress, (uint8_t*)msg.c_str(), msg.length());
     }
-    // send dummy message to test binding
-    String testMsg = "hello";
-    esp_now_send(pcbMacAddress, (uint8_t*)testMsg.c_str(), testMsg.length());
+}
+
+
+void comms_tester() {
+  String testMsg = "Computer sending paused - ESP32 alive";
+  esp_now_send(pcbMacAddress, (uint8_t*)testMsg.c_str(), testMsg.length());
 }
 
 

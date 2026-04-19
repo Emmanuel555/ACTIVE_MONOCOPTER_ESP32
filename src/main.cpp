@@ -9,6 +9,7 @@ void setup(){
 
 void loop(){
     ESPNOW_loop();
+    //comms_tester();
     delay(4); // 250Hz max
 }
 
