@@ -1,6 +1,6 @@
 #include <WiFi.h>
 #include <WiFiUdp.h>
-#include "wifi_rec.h"
+#include "protocols.h"
 #include <esp_now.h>
 
 const char* ssid = "Free";
@@ -52,7 +52,7 @@ void ESPNOW_init() {
   Serial.printf("Receiver MAC: %s\n", WiFi.macAddress().c_str());
   
   esp_now_init();
-  //esp_now_register_recv_cb(onReceive);
+  esp_now_register_recv_cb(onReceive);
 }
 
 
@@ -94,7 +94,7 @@ void start_ESPNOW_serial() {
   //delay(1000);
   ESPNOW_init();
 
-  Serial.println("ESP32 ready for ESPNOW..");
+  Serial.println("ESP32 RX ready for ESPNOW..");
 
   // optional: announce to Teensy
   //Serial1.println("ESP NOW ready");
@@ -225,7 +225,11 @@ void onReceive(const uint8_t *mac, const uint8_t *data, int len) {
     for (int i = 0; i < len; i++) {
         msg += (char)data[i];
     }
+    
     msg.trim();
+
+    /* 
+    // for dshot
 
     int commaIndex = msg.indexOf(',');
     if (commaIndex != -1) {
@@ -235,6 +239,15 @@ void onReceive(const uint8_t *mac, const uint8_t *data, int len) {
         valStr.trim();
 
         Serial.printf("From desk ESP32: %s\n", msg.c_str());
-        Serial1.println(msg); // forward to Teensy
-    }
+        Serial1.println(msg); // forward to Teensy 
+    }    
+    */
+
+    // for simple PWM
+    int pwm = msg.toInt();
+    pwm = constrain(pwm, 1000, 2000);
+
+    Serial.printf("Received PWM: %d\n", pwm);
+    Serial1.println(pwm); // forward to Teensy
+        
 }
