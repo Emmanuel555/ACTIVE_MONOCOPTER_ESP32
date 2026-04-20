@@ -264,9 +264,19 @@ void onReceive(const uint8_t *mac, const uint8_t *data, int len) {
     int pwm = msg.toInt();
     pwm = constrain(pwm, 1000, 2000);
 
-    Serial.printf("Received PWM: %d\n", pwm); 
+    //Serial.printf("Received PWM: %d\n", pwm); 
     
     // forward to Teensy
     Serial1.print(pwm);
-    Serial1.print('\n');    
+    Serial1.print('\n');  
+
+    /* // receive raw bytes
+    if (len >= 2) {
+        int pwm = data[0] | (data[1] << 8);
+        pwm = constrain(pwm, 1000, 2000);
+
+        Serial1.print(pwm);
+        Serial1.print('\n');
+    } */
+
 }
