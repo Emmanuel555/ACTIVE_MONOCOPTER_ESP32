@@ -20,7 +20,7 @@ void send_ESPNOW_init() {
     //WiFi.setTxPower(WIFI_POWER_2dBm); // reduce TX power
     WiFi.mode(WIFI_STA);
     esp_now_init();
-    esp_now_register_send_cb(onSent);
+    //esp_now_register_send_cb(onSent); // too much overhead for this callback, it causes significant latency spikes, so we will just check status in loop instead
 
     memcpy(peerInfo.peer_addr, pcbMacAddress, 6);
     peerInfo.channel = 0;
@@ -34,11 +34,17 @@ void send_ESPNOW_init() {
 
 
 void ESPNOW_loop() {
-    if (Serial.available()) {
+    /* if (Serial.available()) {
         String msg = Serial.readStringUntil('\n');
         Serial.println("Reading from PC Serial: " + msg);
         msg.trim();
         esp_now_send(pcbMacAddress, (uint8_t*)msg.c_str(), msg.length());
+    } */
+
+    if (Serial.available() >= 2) {
+        uint8_t data[2];
+        Serial.readBytes(data, 2);
+        esp_now_send(pcbMacAddress, data, 2);
     }
 }
 
