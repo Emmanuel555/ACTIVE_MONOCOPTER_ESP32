@@ -6,6 +6,9 @@
 const char* ssid = "Free";
 const char* password = "748748748";
 
+int packetCount = 0;
+unsigned long lastPrint = 0;
+
 WiFiUDP udp;
 
 const unsigned int OptiPort = 22222;
@@ -221,6 +224,11 @@ void dshot_motor_wifi_recursion () {
 
 
 void onReceive(const uint8_t *mac, const uint8_t *data, int len) {
+    // flush any queued Serial1 data first
+    while (Serial1.available()) {
+        Serial1.read();
+    }
+
     String msg = "";
     for (int i = 0; i < len; i++) {
         msg += (char)data[i];
@@ -242,6 +250,15 @@ void onReceive(const uint8_t *mac, const uint8_t *data, int len) {
         Serial1.println(msg); // forward to Teensy 
     }    
     */
+
+    packetCount++;
+    
+    if (millis() - lastPrint >= 1000) {
+        Serial.printf("ESP-NOW packets/sec: %d\n", packetCount);
+        packetCount = 0;
+        lastPrint = millis();
+    }
+    
 
     // for simple PWM
     int pwm = msg.toInt();
