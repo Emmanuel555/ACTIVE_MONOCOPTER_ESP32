@@ -260,7 +260,7 @@ void onReceive(const uint8_t *mac, const uint8_t *data, int len) {
     }
     
 
-    // for simple PWM
+    /* // for simple PWM
     int pwm = msg.toInt();
     pwm = constrain(pwm, 1000, 2000);
 
@@ -268,15 +268,15 @@ void onReceive(const uint8_t *mac, const uint8_t *data, int len) {
     
     // forward to Teensy
     Serial1.print(pwm);
-    Serial1.print('\n');  
+    Serial1.print('\n');   */
 
-    /* // receive raw bytes
+    // receive raw bytes
     if (len >= 2) {
         int pwm = data[0] | (data[1] << 8);
         pwm = constrain(pwm, 1000, 2000);
 
         Serial1.print(pwm);
         Serial1.print('\n');
-    } */
+    }
 
 }
