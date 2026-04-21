@@ -97,6 +97,12 @@ void start_ESPNOW_serial() {
   //delay(1000);
   ESPNOW_init();
 
+  // warmup Serial1 to Teensy - put this last
+  unsigned long start = millis();
+  while (millis() - start < 1000) {
+      Serial1.println(1000);
+  }
+
   Serial.println("ESP32 RX ready for ESPNOW..");
 
   // optional: announce to Teensy
