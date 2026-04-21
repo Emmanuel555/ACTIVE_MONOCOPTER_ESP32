@@ -30,6 +30,16 @@ void send_ESPNOW_init() {
         return;
     }
     Serial.println("Peer added successfully");
+
+    // warmup - send dummy packets to stabilize ESP-NOW
+    Serial.println("Warming up ESP-NOW...");
+    unsigned long start = millis();
+    while (millis() - start < 2000) {
+        uint8_t dummy = 0;
+        esp_now_send(pcbMacAddress, &dummy, 1);
+        //delay(4); // 250Hz
+    }
+    Serial.println("Ready!");
 }
 
 
