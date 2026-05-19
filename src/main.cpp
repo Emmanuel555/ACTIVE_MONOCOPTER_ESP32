@@ -9,6 +9,7 @@ void setup(){
 
 void loop(){
     ESPNOW_loop();
+    Serial.println("ESP32 loop running...");
     //comms_tester();
     //delay(4); // 250Hz max
 }
