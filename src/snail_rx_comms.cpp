@@ -22,6 +22,9 @@ void snail_ESPNOW_init() {
   esp_now_register_recv_cb(snail_onReceive);
 }
 
+//void print_mac_address(){
+//    Serial.printf("Receiver MAC: %s\n", WiFi.macAddress().c_str());
+//}
 
 void start_snailESPNOW_serial() {
   Serial.begin(115200);
@@ -87,7 +90,7 @@ void snail_onReceive(const uint8_t *mac, const uint8_t *data, int len) {
         pwm2 = constrain(pwm2, 1000, 2000);
         pwm3 = constrain(pwm3, 1000, 2000);
 
-        Serial1.printf("%d,%d,%d\n", pwm1, pwm2, pwm3);
+        Serial.printf("%d,%d,%d\n", pwm1, pwm2, pwm3);
     }
 
 }
