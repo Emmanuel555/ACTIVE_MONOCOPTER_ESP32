@@ -5,10 +5,10 @@
 
 void setup(){
     // for receiving
-    //start_snailESPNOW_serial();
+    start_snailESPNOW_serial();
     
     // for sending
-    send_ESPNOW_init();
+    send_ESPNOW_init_lite();
 }
 
 void loop(){

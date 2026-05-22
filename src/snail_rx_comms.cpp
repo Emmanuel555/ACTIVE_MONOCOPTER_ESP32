@@ -10,7 +10,8 @@
 
 int snail_packetCount = 0;
 unsigned long snail_lastPrint = 0;
-int no_of_elements = 3; // number of PWM values expected in each packet
+int no_of_elements = 5; // number of PWM values expected in each packet
+state_estimation states;
 
 
 void snail_ESPNOW_init() {
@@ -80,17 +81,23 @@ void snail_onReceive(const uint8_t *mac, const uint8_t *data, int len) {
     Serial1.print(pwm);
     Serial1.print('\n');   */
 
-    // receive 3 PWM values as raw bytes (2 bytes each, little-endian)
-    if (len >= no_of_elements * 2) {
-        int pwm1 = data[0] | (data[1] << 8);
-        int pwm2 = data[2] | (data[3] << 8);
-        int pwm3 = data[4] | (data[5] << 8);
+    // receive 5 floats (4 bytes each, 20 bytes total)
+    if (len >= no_of_elements * 4) {
+        memcpy(&states.x,   data,      4);
+        memcpy(&states.y,   data + 4,  4);
+        memcpy(&states.vx,  data + 8,  4);
+        memcpy(&states.vy,  data + 12, 4);
+        memcpy(&states.mag, data + 16, 4);
 
-        pwm1 = constrain(pwm1, 1000, 2000);
-        pwm2 = constrain(pwm2, 1000, 2000);
-        pwm3 = constrain(pwm3, 1000, 2000);
-
-        Serial.printf("%d,%d,%d\n", pwm1, pwm2, pwm3);
+        //Serial.printf("%.3f,%.3f,%.3f,%.3f,%.3f\n", states.x, states.y, states.vx, states.vy, states.mag);
     }
 
+    send_states(states);
+
+}
+
+
+void send_states(state_estimation states) {
+    Serial.printf("%.3f,%.3f,%.3f,%.3f,%.3f\n", 
+        states.x, states.y, states.vx, states.vy, states.mag);
 }
