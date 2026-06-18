@@ -50,7 +50,7 @@ void start_snailESPNOW_serial() {
 
 
 void snail_onReceive(const uint8_t *mac, const uint8_t *data, int len) {
-    // flush any queued Serial1 data first
+    // flush any queued Serial1 data first, this is primarily for teensy stuff...nth wireless
     while (Serial1.available()) {
         Serial1.read();
     }
