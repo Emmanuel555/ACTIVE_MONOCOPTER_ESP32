@@ -4,12 +4,17 @@
 #include <esp_now.h>
 
 
+// ESP32 UART pins connected to Teensy
+// change these to match your wiring
+constexpr int RXD2 = 44;
+constexpr int TXD2 = 43;
+
+
 // WIN ESP32 MAC address - get this from WIN ESP32's Serial monitor
 uint8_t SnailMacAddress[] = {0xD8, 0x3B, 0xDA, 0x45, 0x88, 0x18};
-
 esp_now_peer_info_t peerInfo;
-
 int inputs = 4; // number of PWM values expected in each packet
+
 
 void onSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
 Serial.printf("Send status: %s\n", status == ESP_NOW_SEND_SUCCESS ? "SENT (RX Online)" : "FAILED (RX Offline)");
@@ -41,6 +46,8 @@ void send_ESPNOW_init() {
         esp_now_send(SnailMacAddress, &dummy, 1);
         //delay(4); // 250Hz
     }
+
+
     Serial.println("Ready!");
 }
 
@@ -68,7 +75,6 @@ void send_ESPNOW_init_lite() {
 }
 
 
-
 void ESPNOW_loop() {
     /* if (Serial.available()) {
         String msg = Serial.readStringUntil('\n');
@@ -91,6 +97,18 @@ void comms_tester() {
 }
 
 
+void teensy_start(){
+  Serial.println("Connection to teensy binding...");  // USB debug
+  Serial1.begin(115200, SERIAL_8N1, RXD2, TXD2);  // UART to Teensy
+
+  // warmup Serial1 to Teensy - put this last
+  unsigned long start = millis();
+  while (millis() - start < 1000) {
+      Serial1.println(1000);
+  }
+}
+
+
 void send_3pwm(int pwm1, int pwm2, int pwm3) {
     uint8_t buf[6];
     buf[0] = pwm1 & 0xFF;
@@ -100,6 +118,7 @@ void send_3pwm(int pwm1, int pwm2, int pwm3) {
     buf[4] = pwm3 & 0xFF;
     buf[5] = (pwm3 >> 8) & 0xFF;
     esp_now_send(SnailMacAddress, buf, 6);
+    Serial1.write(buf, 6);
 }
 
 
