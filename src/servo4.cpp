@@ -1,48 +1,44 @@
 #include "servo4.h"
-#include <Arduino.h>
+#include <ESP32Servo.h>
 
 namespace {
-    constexpr int FREQ_HZ = 50;
-    constexpr int RES_BITS = 16;
-    constexpr uint32_t PERIOD_US = 1000000UL / FREQ_HZ;
-    constexpr uint32_t MAX_DUTY = (1UL << RES_BITS) - 1;
-
-    constexpr int CH_ANGLE1 = 0;
-    constexpr int CH_ANGLE2 = 1;
-    constexpr int CH_CONT1  = 2;
-    constexpr int CH_CONT2  = 3;
-
-    void writePulseUs(int channel, int us) {
-        uint32_t duty = (uint32_t)((uint64_t)us * MAX_DUTY / PERIOD_US);
-        ledcWrite(channel, duty);
-    }
+    Servo servos[4];
+    const int servoPins[4] = {SERVO_ANGLE1_PIN, SERVO_ANGLE2_PIN, SERVO_CONT1_PIN, SERVO_CONT2_PIN};
 }
+
 
 void servo4_init() {
-    ledcSetup(CH_ANGLE1, FREQ_HZ, RES_BITS);
-    ledcSetup(CH_ANGLE2, FREQ_HZ, RES_BITS);
-    ledcSetup(CH_CONT1,  FREQ_HZ, RES_BITS);
-    ledcSetup(CH_CONT2,  FREQ_HZ, RES_BITS);
+    // Each attach() otherwise grabs the next free LEDC timer on demand;
+    // on the S3 (4 timers total) that runs out after 2-3 attaches and the
+    // earlier-defined Servo objects silently fail to attach. Reserving all
+    // 4 timers up front before any attach() call fixes that.
+    ESP32PWM::allocateTimer(0);
+    ESP32PWM::allocateTimer(1);
+    ESP32PWM::allocateTimer(2);
+    ESP32PWM::allocateTimer(3);
 
-    ledcAttachPin(SERVO_ANGLE1_PIN, CH_ANGLE1);
-    ledcAttachPin(SERVO_ANGLE2_PIN, CH_ANGLE2);
-    ledcAttachPin(SERVO_CONT1_PIN,  CH_CONT1);
-    ledcAttachPin(SERVO_CONT2_PIN,  CH_CONT2);
+    for (int i = 0; i < 4; i++) {
+        servos[i].setPeriodHertz(50);
+        servos[i].attach(servoPins[i], 1000, 2000);
+    }
 
-    writePulseUs(CH_ANGLE1, 1500);
-    writePulseUs(CH_ANGLE2, 1500);
-    writePulseUs(CH_CONT1, 1500);
-    writePulseUs(CH_CONT2, 1500);
+    // attach() drives the pin with a default pulse before write()/writeMicroseconds()
+    // is ever called; for the continuous-rotation servos (index 2, 3) that default
+    // isn't guaranteed to land on this unit's true stop point, so force it explicitly.
+    servos[2].writeMicroseconds(1500);
+    servos[3].writeMicroseconds(1500);
 }
+
 
 void servo4_writeAngles(int deg1, int deg2) {
-    deg1 = constrain(deg1, 0, 180);
-    deg2 = constrain(deg2, 0, 180);
-    writePulseUs(CH_ANGLE1, map(deg1, 0, 180, 1000, 2000));
-    writePulseUs(CH_ANGLE2, map(deg2, 0, 180, 1000, 2000));
+    servos[0].write(constrain(deg1, 0, 180));
+    servos[1].write(constrain(deg2, 0, 180));
+    Serial.println("Servo angles updated....");
 }
 
+
 void servo4_writeContinuous(int us1, int us2) {
-    writePulseUs(CH_CONT1, constrain(us1, 1000, 2000));
-    writePulseUs(CH_CONT2, constrain(us2, 1000, 2000));
+    servos[2].writeMicroseconds(constrain(us1, 1000, 2000));
+    servos[3].writeMicroseconds(constrain(us2, 1000, 2000));
+    Serial.println("Servo continuous values updated....");
 }

@@ -11,3 +11,10 @@ use ls /dev/ttyACM* /dev/ttyUSB* 2>/dev/null to test if ESP32 is connected
 
 it shud print /dev/ttyACM0
 
+
+Extra:
+
+**PlatformIO only works with VScode
+
+rmb to run sudo apt install python3-venv
+

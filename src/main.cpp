@@ -25,7 +25,7 @@ void loop(){
         lastToggle = millis();
     }
     servo4_writeAngles(angle, angle);   // pins 1, 2 sweep 60 <-> 120
-
+    //servo4_writeContinuous(1700, 1700); // pins 6, 43 stopped
     //servo4_writeContinuous(1500, 1500); // pins 6, 43 stopped
     //Serial.println("ESP32 loop running..."); //
     //Serial.printf("Receiver MAC: %s\n", WiFi.macAddress().c_str());
