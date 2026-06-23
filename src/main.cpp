@@ -1,32 +1,41 @@
 #include <Arduino.h>
 #include "snail_rx_comms.h"
 #include "snail_tx_comms.h"
-#include "servo4.h"
 #include <WiFi.h>
+#include "IMU.h"
 
-void setup(){
+String mode = "com"; // "teensy" or "com" - set this to switch between receiving from Teensy or computer 
+
+void setup(){   
+    if (mode == "teensy") {
+        start_imu(); // initialize IMU and encoders
+        teensy_start(); // initialize Serial1 to Teensy
+        uint8_t rxMac[] = {0xD8, 0x3B, 0xDA, 0x45, 0x87, 0x18};
+        setSnailMacAddress(rxMac); // set RX MAC address for Teensy mode
+    }
+    else {
+        uint8_t rxMac[] = {0xD8, 0x3B, 0xDA, 0x45, 0x88, 0x18};
+        setSnailMacAddress(rxMac); // set RX MAC address for computer mode
+    }
+    
     // for receiving
-    start_snailESPNOW_serial(); //
+    start_snailESPNOW_serial(mode); //
 
     // for sending
-    send_ESPNOW_init_lite(); //
-
-    servo4_init();
+    send_ESPNOW_init_lite(); //    
 }
 
-void loop(){
-    // for sending
-    ESPNOW_loop(); //
 
-    static unsigned long lastToggle = 0;
-    static int angle = 60;
-    if (millis() - lastToggle >= 1000) {
-        angle = (angle == 60) ? 120 : 60;
-        lastToggle = millis();
+void loop(){
+    if (mode == "teensy") {
+        // read IMU and encoders
+        IMUDATA imuData = getPWMValues();
+        feedback_states(imuData.posX, imuData.posY, imuData.velX, imuData.velY, imuData.heading);
     }
-    servo4_writeAngles(angle, angle);   // pins 1, 2 sweep 60 <-> 120
-    //servo4_writeContinuous(1700, 1700); // pins 6, 43 stopped
-    //servo4_writeContinuous(1500, 1500); // pins 6, 43 stopped
+    else {
+        control_loop(); 
+    }
+
     //Serial.println("ESP32 loop running..."); //
     //Serial.printf("Receiver MAC: %s\n", WiFi.macAddress().c_str());
     //comms_tester();

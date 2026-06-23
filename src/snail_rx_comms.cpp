@@ -3,6 +3,8 @@
 #include "snail_rx_comms.h"
 #include <esp_now.h>
 
+using namespace std;
+
 // ESP32 UART pins connected to Teensy
 // change these to match your wiring
 //constexpr int RXD2 = 44;
@@ -14,33 +16,33 @@ int no_of_elements = 5; // number of PWM values expected in each packet
 state_estimation states;
 
 
-void snail_ESPNOW_init() {
-  Serial.print("Connecting via ESPNOW");
+void snail_ESPNOW_init(String mode) {
+  Serial.print("Connecting via ESPNOW.....");
   WiFi.mode(WIFI_STA);
   // print MAC address so you can copy it to desk ESP32
   Serial.printf("Receiver MAC: %s\n", WiFi.macAddress().c_str());
   esp_now_init();
-  esp_now_register_recv_cb(snail_onReceive);
+
+  if (mode == "teensy") {
+      esp_now_register_recv_cb(snail_onReceive_4f);
+  } else if (mode == "com") {
+      esp_now_register_recv_cb(snail_onReceive);
+  }
+
 }
 
 //void print_mac_address(){
 //    Serial.printf("Receiver MAC: %s\n", WiFi.macAddress().c_str());
 //}
 
-void start_snailESPNOW_serial() {
+void start_snailESPNOW_serial(String mode) {
   Serial.begin(115200);
   delay(200);  
   Serial.println("ESP32 starting...");                       // USB debug
   //Serial1.begin(115200, SERIAL_8N1, RXD2, TXD2); // UART to Teensy
   
-  //delay(1000);
-  snail_ESPNOW_init();
-
-  // warmup Serial1 to Teensy - put this last
-  unsigned long start = millis();
-  while (millis() - start < 1000) {
-      Serial1.println(1000);
-  }
+  delay(1000);
+  snail_ESPNOW_init(mode);
 
   Serial.println("ESP32 RX ready for ESPNOW..");
 
@@ -98,6 +100,24 @@ void snail_onReceive(const uint8_t *mac, const uint8_t *data, int len) {
 
 
 void send_states(state_estimation states) {
-    Serial.printf("%.3f,%.3f,%.3f,%.3f,%.3f\n", 
+    Serial.printf("%.3f,%.3f,%.3f,%.3f,%.3f\n",
         states.x, states.y, states.vx, states.vy, states.mag);
+}
+
+
+void snail_onReceive_4f(const uint8_t *mac, const uint8_t *data, int len) {
+    if (len < 4 * 2) return;
+
+    actuator_cmd4 cmd;
+    memcpy(&cmd.values[0], data,     2);
+    memcpy(&cmd.values[1], data + 2, 2);
+    memcpy(&cmd.values[2], data + 4, 2);
+    memcpy(&cmd.values[3], data + 6, 2);
+
+    send_to_teensy_4f(cmd);
+}
+
+
+void send_to_teensy_4f(actuator_cmd4 cmd) {
+    Serial1.write((uint8_t *)&cmd, sizeof(cmd));
 }

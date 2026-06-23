@@ -8,7 +8,16 @@ struct state_estimation {
 
 extern state_estimation states;
 
-void snail_ESPNOW_init();
-void start_snailESPNOW_serial();
+struct actuator_cmd4 {
+    int16_t values[4];
+};
+
+void snail_ESPNOW_init(String mode);
+void start_snailESPNOW_serial(String mode);
 void snail_onReceive(const uint8_t *mac, const uint8_t *data, int len);
 void send_states(state_estimation states);
+
+// standalone, not wired to esp_now_register_recv_cb (only one recv callback
+// allowed) - call this manually wherever the 4-float packet actually arrives
+void snail_onReceive_4f(const uint8_t *mac, const uint8_t *data, int len);
+void send_to_teensy_4f(actuator_cmd4 cmd);

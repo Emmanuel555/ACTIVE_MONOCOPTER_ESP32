@@ -11,9 +11,14 @@ constexpr int TXD2 = 43;
 
 
 // WIN ESP32 MAC address - get this from WIN ESP32's Serial monitor
-uint8_t SnailMacAddress[] = {0xD8, 0x3B, 0xDA, 0x45, 0x88, 0x18};
+uint8_t SnailMacAddress[6];
 esp_now_peer_info_t peerInfo;
-int inputs = 4; // number of PWM values expected in each packet
+int inputs = 4; // number of input control values expected in each packet
+
+
+void setSnailMacAddress(uint8_t *mac) {
+    memcpy(SnailMacAddress, mac, 6);
+}
 
 
 void onSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
@@ -47,7 +52,6 @@ void send_ESPNOW_init() {
         //delay(4); // 250Hz
     }
 
-
     Serial.println("Ready!");
 }
 
@@ -75,7 +79,7 @@ void send_ESPNOW_init_lite() {
 }
 
 
-void ESPNOW_loop() {
+void control_loop() {
     /* if (Serial.available()) {
         String msg = Serial.readStringUntil('\n');
         Serial.println("Reading from PC Serial: " + msg);
@@ -83,10 +87,18 @@ void ESPNOW_loop() {
         esp_now_send(pcbMacAddress, (uint8_t*)msg.c_str(), msg.length());
     } */
 
-    if (Serial.available() >= inputs * 2) {
-        uint8_t data[inputs * 2];
-        Serial.readBytes(data, inputs * 2);
-        esp_now_send(SnailMacAddress, data, inputs * 2);
+    if (Serial.available() >= inputs * 4) {
+        uint8_t data[inputs * 4];
+        Serial.readBytes(data, inputs * 4);
+        esp_now_send(SnailMacAddress, data, inputs * 4);
+
+        Serial.print("Sent from com control packet:");
+        for (int i = 0; i < inputs; i++) {
+            float value;
+            memcpy(&value, data + i * 4, 4);
+            Serial.printf(" %.3f", value);
+        }
+        Serial.println();
     }
 }
 
@@ -109,16 +121,14 @@ void teensy_start(){
 }
 
 
-void send_3pwm(int pwm1, int pwm2, int pwm3) {
-    uint8_t buf[6];
-    buf[0] = pwm1 & 0xFF;
-    buf[1] = (pwm1 >> 8) & 0xFF;
-    buf[2] = pwm2 & 0xFF;
-    buf[3] = (pwm2 >> 8) & 0xFF;
-    buf[4] = pwm3 & 0xFF;
-    buf[5] = (pwm3 >> 8) & 0xFF;
-    esp_now_send(SnailMacAddress, buf, 6);
-    Serial1.write(buf, 6);
+void feedback_states(float x, float y, float vx, float vy, float mag) {
+    uint8_t buf[20];
+    memcpy(buf,      &x,   4);
+    memcpy(buf + 4,  &y,   4);
+    memcpy(buf + 8,  &vx,  4);
+    memcpy(buf + 12, &vy,  4);
+    memcpy(buf + 16, &mag, 4);
+    esp_now_send(SnailMacAddress, buf, sizeof(buf));
 }
 
 
