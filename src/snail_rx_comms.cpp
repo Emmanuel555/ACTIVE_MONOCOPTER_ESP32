@@ -91,7 +91,7 @@ void snail_onReceive(const uint8_t *mac, const uint8_t *data, int len) {
         memcpy(&states.vy,  data + 12, 4);
         memcpy(&states.mag, data + 16, 4);
 
-        //Serial.printf("%.3f,%.3f,%.3f,%.3f,%.3f\n", states.x, states.y, states.vx, states.vy, states.mag);
+        Serial.printf("%.3f,%.3f,%.3f,%.3f,%.3f\n", states.x, states.y, states.vx, states.vy, states.mag);
     }
 
     send_states(states);
@@ -106,13 +106,13 @@ void send_states(state_estimation states) {
 
 
 void snail_onReceive_4f(const uint8_t *mac, const uint8_t *data, int len) {
-    if (len < 4 * 2) return;
+    if (len < 4 * 4) return;
 
     actuator_cmd4 cmd;
-    memcpy(&cmd.values[0], data,     2);
-    memcpy(&cmd.values[1], data + 2, 2);
-    memcpy(&cmd.values[2], data + 4, 2);
-    memcpy(&cmd.values[3], data + 6, 2);
+    memcpy(&cmd.values[0], data,      4);
+    memcpy(&cmd.values[1], data + 4,  4);
+    memcpy(&cmd.values[2], data + 8,  4);
+    memcpy(&cmd.values[3], data + 12, 4);
 
     send_to_teensy_4f(cmd);
 }

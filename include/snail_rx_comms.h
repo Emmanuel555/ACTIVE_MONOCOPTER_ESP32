@@ -9,7 +9,7 @@ struct state_estimation {
 extern state_estimation states;
 
 struct actuator_cmd4 {
-    int16_t values[4];
+    float values[4];
 };
 
 void snail_ESPNOW_init(String mode);

@@ -118,6 +118,8 @@ void teensy_start(){
   while (millis() - start < 1000) {
       Serial1.println(1000);
   }
+
+  Serial.println("Teensy connected!");
 }
 
 

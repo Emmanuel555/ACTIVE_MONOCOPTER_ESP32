@@ -8,12 +8,19 @@ void start_imu() {
     while (!Serial) { delay(10); } // Wait for Serial Monitor to open
 
     odom.begin();                  // begin() does its own internal Wire.begin() on default pins
+    Wire.end();                    // tear down so the next begin() actually re-applies new pins
     Wire.begin(9, 8, 100000);      // reassert our actual I2C pins/clock so they're what's actually used
     delay(3000);
 
-    while (!odom.getDeviceStatus().ready) {
-        Serial.println("Pinpoint not detected!");
+    // NOTE: getDeviceStatus()/PinpointStatus is unreliable in this library - its
+    // fields are left uninitialized except on the specific bit-set paths that
+    // explicitly assign them. bulkRead().Error is properly initialized and set
+    // by actual communication logic, so gate on that instead.
+    goBILDA::BulkReadData data = odom.bulkRead();
+    while (data.Error != goBILDA::PinpointError::None) {
+        Serial.printf("Pinpoint not detected! error=%d\n", (int)data.Error);
         delay(100);
+        data = odom.bulkRead();
     }
 
     Serial.println("Pinpoint ready!");
