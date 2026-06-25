@@ -127,5 +127,9 @@ void snail_onReceive_5f(const uint8_t *mac, const uint8_t *data, int len) {
 
 
 void send_to_teensy_5f(actuator_cmd5 cmd) {
+    // Teensy's read_pwm_serial1() waits for this exact sync byte before it
+    // starts capturing the payload - without it the packet is never seen
+    const uint8_t syncByte = 0xAA;
+    Serial1.write(&syncByte, 1);
     Serial1.write((uint8_t *)&cmd, sizeof(cmd));
 }
