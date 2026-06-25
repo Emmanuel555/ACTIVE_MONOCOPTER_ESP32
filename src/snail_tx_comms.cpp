@@ -13,7 +13,7 @@ constexpr int TXD2 = 43;
 // WIN ESP32 MAC address - get this from WIN ESP32's Serial monitor
 uint8_t SnailMacAddress[6];
 esp_now_peer_info_t peerInfo;
-int inputs = 4; // number of input control values expected in each packet
+int inputs = 5; // number of input control values expected in each packet
 
 
 void setSnailMacAddress(uint8_t *mac) {
@@ -79,6 +79,15 @@ void send_ESPNOW_init_lite() {
 }
 
 
+// packet framing: PC must prefix each payload with these two sync bytes so
+// the ESP32 can resync if a USB read ever lands mid-packet (otherwise a
+// one-time byte drift silently persists forever and rotates every value)
+constexpr uint8_t SYNC_BYTE1 = 0xAA;
+constexpr uint8_t SYNC_BYTE2 = 0x55;
+
+enum ControlSyncState { WAIT_SYNC1, WAIT_SYNC2, WAIT_PAYLOAD };
+ControlSyncState controlSyncState = WAIT_SYNC1;
+
 void control_loop() {
     /* if (Serial.available()) {
         String msg = Serial.readStringUntil('\n');
@@ -87,18 +96,49 @@ void control_loop() {
         esp_now_send(pcbMacAddress, (uint8_t*)msg.c_str(), msg.length());
     } */
 
-    if (Serial.available() >= inputs * 4) {
-        uint8_t data[inputs * 4];
-        Serial.readBytes(data, inputs * 4);
-        esp_now_send(SnailMacAddress, data, inputs * 4);
+    switch (controlSyncState) {
+        case WAIT_SYNC1:
+            if (Serial.available() >= 1) {
+                controlSyncState = (Serial.read() == SYNC_BYTE1) ? WAIT_SYNC2 : WAIT_SYNC1;
+            }
+            break;
 
-        Serial.print("Sent from com control packet: ");
-        for (int i = 0; i < inputs; i++) {
-            float value;
-            memcpy(&value, data + i * 4, 4);
-            Serial.printf(" %.3f", value);
-        }
-        Serial.println();
+        case WAIT_SYNC2:
+            if (Serial.available() >= 1) {
+                controlSyncState = (Serial.read() == SYNC_BYTE2) ? WAIT_PAYLOAD : WAIT_SYNC1;
+            }
+            break;
+
+        case WAIT_PAYLOAD:
+            // +1 for the trailing checksum byte - rejects a sync marker that
+            // coincidentally matched inside real payload bytes instead of a
+            // real header (static-valued packets reproduce that false match
+            // every time, otherwise looking like a stable "shifted" stream)
+            if (Serial.available() >= inputs * 4 + 1) {
+                uint8_t data[inputs * 4];
+                Serial.readBytes(data, inputs * 4);
+                uint8_t checksum = Serial.read();
+
+                uint8_t expected = 0;
+                for (int i = 0; i < inputs * 4; i++) expected ^= data[i];
+
+                if (checksum == expected) {
+                    esp_now_send(SnailMacAddress, data, inputs * 4);
+
+                    Serial.print("Sent from com control packet: ");
+                    for (int i = 0; i < inputs; i++) {
+                        float value;
+                        memcpy(&value, data + i * 4, 4);
+                        Serial.printf(" %.3f", value);
+                    }
+                    Serial.println();
+                } else {
+                    Serial.println("Checksum mismatch - dropping packet, resyncing");
+                }
+
+                controlSyncState = WAIT_SYNC1;
+            }
+            break;
     }
 }
 

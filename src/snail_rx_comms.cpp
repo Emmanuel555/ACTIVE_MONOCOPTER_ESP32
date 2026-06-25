@@ -26,7 +26,7 @@ void snail_ESPNOW_init(String mode) {
   Serial.printf("esp_now_init result: %s (mode=%s)\n", initResult == ESP_OK ? "OK" : "FAILED", mode.c_str());
 
   if (mode == "teensy") {
-      esp_now_register_recv_cb(snail_onReceive_4f);
+      esp_now_register_recv_cb(snail_onReceive_5f);
   } else if (mode == "com") {
       esp_now_register_recv_cb(snail_onReceive);
   } else {
@@ -98,7 +98,7 @@ void snail_onReceive(const uint8_t *mac, const uint8_t *data, int len) {
         //Serial.printf("%.3f,%.3f,%.3f,%.3f,%.3f\n", states.x, states.y, states.vx, states.vy, states.mag);
     }
 
-    send_states(states);
+    //send_states(states);
 
 }
 
@@ -109,19 +109,23 @@ void send_states(state_estimation states) {
 }
 
 
-void snail_onReceive_4f(const uint8_t *mac, const uint8_t *data, int len) {
-    if (len < 4 * 4) return;
+void snail_onReceive_5f(const uint8_t *mac, const uint8_t *data, int len) {
+    if (len < 5 * 4) return;
 
-    actuator_cmd4 cmd;
+    actuator_cmd5 cmd;
     memcpy(&cmd.values[0], data,      4);
     memcpy(&cmd.values[1], data + 4,  4);
     memcpy(&cmd.values[2], data + 8,  4);
     memcpy(&cmd.values[3], data + 12, 4);
+    memcpy(&cmd.values[4], data + 16, 4);
 
-    send_to_teensy_4f(cmd);
+    Serial.printf("Received actuator cmd: %.3f,%.3f,%.3f,%.3f,%.3f\n",
+        cmd.values[0], cmd.values[1], cmd.values[2], cmd.values[3], cmd.values[4]);
+
+    send_to_teensy_5f(cmd);
 }
 
 
-void send_to_teensy_4f(actuator_cmd4 cmd) {
+void send_to_teensy_5f(actuator_cmd5 cmd) {
     Serial1.write((uint8_t *)&cmd, sizeof(cmd));
 }

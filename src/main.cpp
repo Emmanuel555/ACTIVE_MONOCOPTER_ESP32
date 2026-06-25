@@ -4,7 +4,7 @@
 #include <WiFi.h>
 #include "IMU.h"
 
-String mode = "com"; // "teensy" or "com" - set this to switch between receiving from Teensy or computer 
+String mode = "teensy"; // "teensy" or "com" - set this to switch between receiving from Teensy or computer 
 
 void setup(){
     // for receiving - this also calls Serial.begin(), so it must run before
