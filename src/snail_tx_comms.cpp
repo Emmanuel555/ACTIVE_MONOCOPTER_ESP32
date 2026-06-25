@@ -130,7 +130,9 @@ void feedback_states(float x, float y, float vx, float vy, float mag) {
     memcpy(buf + 8,  &vx,  4);
     memcpy(buf + 12, &vy,  4);
     memcpy(buf + 16, &mag, 4);
-    esp_now_send(SnailMacAddress, buf, sizeof(buf));
+    //Serial.printf("SnailMacAddress: %02X:%02X:%02X:%02X:%02X:%02X\n", SnailMacAddress[0], SnailMacAddress[1], SnailMacAddress[2], SnailMacAddress[3], SnailMacAddress[4], SnailMacAddress[5]);
+    esp_err_t sendResult = esp_now_send(SnailMacAddress, buf, sizeof(buf));
+    Serial.printf("esp_now_send result: %s, WiFi channel: %d\n", sendResult == ESP_OK ? "OK" : "FAILED", WiFi.channel());
 }
 
 

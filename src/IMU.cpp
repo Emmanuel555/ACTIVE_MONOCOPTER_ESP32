@@ -5,8 +5,6 @@
 goBILDA::Pinpoint odom;
 
 void start_imu() {
-    while (!Serial) { delay(10); } // Wait for Serial Monitor to open
-
     odom.begin();                  // begin() does its own internal Wire.begin() on default pins
     Wire.end();                    // tear down so the next begin() actually re-applies new pins
     Wire.begin(9, 8, 100000);      // reassert our actual I2C pins/clock so they're what's actually used
@@ -72,8 +70,8 @@ IMUDATA getPWMValues() {
         DATA.velY = data.VelocityY;
         DATA.heading = data.Position.heading;
 
-        Serial.printf("X=%.2f  Y=%.2f  H=%.2f  VelX (mm/s)=%.2f  VelY (mm/s)=%.2f  VelH (deg/s)=%.2f\n",
-            DATA.posX, DATA.posY, headingDeg, DATA.velX, DATA.velY, headingVelDeg);
+        //Serial.printf("X=%.2f  Y=%.2f  H=%.2f  VelX (mm/s)=%.2f  VelY (mm/s)=%.2f  VelH (deg/s)=%.2f\n",
+        //    DATA.posX, DATA.posY, headingDeg, DATA.velX, DATA.velY, headingVelDeg);
         return DATA;
     }
 

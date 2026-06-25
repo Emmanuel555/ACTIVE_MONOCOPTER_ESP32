@@ -4,7 +4,7 @@
 #include <WiFi.h>
 #include "IMU.h"
 
-String mode = "com"; // "teensy" or "com" - set this to switch between receiving from Teensy or computer 
+String mode = "teensy"; // "teensy" or "com" - set this to switch between receiving from Teensy or computer 
 
 void setup(){
     // for receiving - this also calls Serial.begin(), so it must run before
@@ -38,7 +38,7 @@ void loop(){
     } */
 
     //Serial.println("ESP32 loop running..."); //
-    //Serial.printf("Receiver MAC: %s\n", WiFi.macAddress().c_str());
+    //Serial.printf("Robot MAC: %s\n", WiFi.macAddress().c_str());
     //comms_tester();
     //delay(4); // 250Hz max
 }

@@ -21,12 +21,16 @@ void snail_ESPNOW_init(String mode) {
   WiFi.mode(WIFI_STA);
   // print MAC address so you can copy it to desk ESP32
   Serial.printf("Receiver MAC: %s\n", WiFi.macAddress().c_str());
-  esp_now_init();
+  Serial.printf("WiFi channel: %d\n", WiFi.channel());
+  esp_err_t initResult = esp_now_init();
+  Serial.printf("esp_now_init result: %s (mode=%s)\n", initResult == ESP_OK ? "OK" : "FAILED", mode.c_str());
 
   if (mode == "teensy") {
       esp_now_register_recv_cb(snail_onReceive_4f);
   } else if (mode == "com") {
       esp_now_register_recv_cb(snail_onReceive);
+  } else {
+      Serial.printf("WARNING: mode \"%s\" matched neither \"teensy\" nor \"com\" - no recv callback registered!\n", mode.c_str());
   }
 
 }
@@ -53,9 +57,9 @@ void start_snailESPNOW_serial(String mode) {
 
 void snail_onReceive(const uint8_t *mac, const uint8_t *data, int len) {
     // flush any queued Serial1 data first, this is primarily for teensy stuff...nth wireless
-    while (Serial1.available()) {
-        Serial1.read();
-    }
+    //while (Serial1.available()) {
+    //    Serial1.read();
+    //}
 
     String msg = "";
     for (int i = 0; i < len; i++) {
