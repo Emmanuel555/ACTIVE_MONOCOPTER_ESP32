@@ -92,7 +92,7 @@ void control_loop() {
         Serial.readBytes(data, inputs * 4);
         esp_now_send(SnailMacAddress, data, inputs * 4);
 
-        Serial.print("Sent from com control packet:");
+        Serial.print("Sent from com control packet: ");
         for (int i = 0; i < inputs; i++) {
             float value;
             memcpy(&value, data + i * 4, 4);

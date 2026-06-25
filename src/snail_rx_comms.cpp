@@ -95,7 +95,7 @@ void snail_onReceive(const uint8_t *mac, const uint8_t *data, int len) {
         memcpy(&states.vy,  data + 12, 4);
         memcpy(&states.mag, data + 16, 4);
 
-        Serial.printf("%.3f,%.3f,%.3f,%.3f,%.3f\n", states.x, states.y, states.vx, states.vy, states.mag);
+        //Serial.printf("%.3f,%.3f,%.3f,%.3f,%.3f\n", states.x, states.y, states.vx, states.vy, states.mag);
     }
 
     send_states(states);
